@@ -135,7 +135,7 @@ def _trawl_games() -> None:
             day: pd.DataFrame = day_scores(date, "MBB", division=n)
             everything = pd.concat([everything, day], ignore_index=True)
             date += timedelta(days=1)
-            time.sleep(3)
+            time.sleep(SLEEP_DELAY)
     everything.to_csv("scores.csv")
 
 
@@ -155,7 +155,7 @@ def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -
         for n in [1, 2, 3]:
             day: pd.DataFrame = day_scores(start, sport_code, division=n)
             if day.empty:
-                time.sleep(3)
+                time.sleep(SLEEP_DELAY)
                 continue
             all_games = pd.concat([all_games, day], ignore_index=True)
             for i, game_id in enumerate(day["Game_id"]):
@@ -173,14 +173,14 @@ def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -
                     continue
 
                 if game.empty:
-                    time.sleep(3)
+                    time.sleep(SLEEP_DELAY)
                     print(day["Home_Team"][i], ",", day["Away_Team"][i], game_id)
                     ppps: Tuple[float, float] = _ppp_est(game_id)
                     all_games.at[index, "Home_ppp"] = ppps[0]
                     all_games.at[index, "Away_ppp"] = ppps[1]
                     all_games.at[index, "Division"] = n
                     index += 1
-                    time.sleep(3)
+                    time.sleep(SLEEP_DELAY)
                     continue
                 if game["is_Garbage_Time"].any():
                     cutoff_index = game[game["is_Garbage_Time"] == True].index[0]
@@ -190,9 +190,9 @@ def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -
                 all_games.at[index, "Away_ppp"] = round((game["Away_Score"].iloc[-1] / poss), 2)
                 all_games.at[index, "Division"] = n
                 index += 1
-                time.sleep(3)
+                time.sleep(SLEEP_DELAY)
         start += timedelta(days=1)
-        time.sleep(3)
+        time.sleep(SLEEP_DELAY)
         all_games.to_csv(file, index=False)
 
 
