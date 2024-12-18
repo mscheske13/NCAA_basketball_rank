@@ -1,5 +1,4 @@
 import sys
-
 import pandas as pd
 from day_trawler import day_scores
 from play_by_play import scrape_game
@@ -91,7 +90,6 @@ def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
         results.at[i, "ADJO"] = _average(league[team].adj_o)
         results.at[i, "ADJD"] = _average(league[team].adj_d)
         results.at[i, "ADJ_EM"] = _average(league[team].adj_o) - _average(league[team].adj_d)
-    results.to_csv(f"Results_{division}.csv")
     return results
 
 
@@ -201,14 +199,14 @@ def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -
         all_games.to_csv(file, index=False)
 
 
-def every_rank(start : datetime, end : datetime, file : str) -> pd.DataFrame:
+def every_rank(start : datetime, end : datetime, file : str, division : int) -> pd.DataFrame:
     try:
         _all_games(start, end, file)
     except:
         print(f"connection error, the progress has been saved within {file}, to resume, try again with the start date most recently printed")
         sys.exit(1)
     games: pd.DataFrame = _isolate_divisions(file)
-    return _rank_them(games, division=1)
+    return _rank_them(games, division)
 
 
 
