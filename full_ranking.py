@@ -199,14 +199,15 @@ def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -
         all_games.to_csv(file, index=False)
 
 
-def every_rank(start : datetime, end : datetime, file : str, division : int) -> pd.DataFrame:
+def every_rank(start : datetime, end : datetime, file : str, division : int, w : bool = False) -> pd.DataFrame:
     try:
-        _all_games(start, end, file)
+        _all_games(start, end, file, w)
     except:
         print(f"connection error, the progress has been saved within {file}, to resume, try again with the start date most recently printed")
         sys.exit(1)
     games: pd.DataFrame = _isolate_divisions(file)
     return _rank_them(games, division)
+
 
 
 
