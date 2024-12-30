@@ -83,9 +83,6 @@ def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
                     league[opp].adj_d[j] = league[opp].d_ppp[j] / (_average(league[team].adj_o) * loc_adj)
     results : pd.DataFrame = pd.DataFrame()
     for i, team in enumerate(league):
-        if team == "UC Irvine":
-            for j, perm in enumerate(league[team].adj_d):
-                print(league[team].opponents[j],  round(league[team].adj_d[j], 2))
         results.at[i, "Team"] = league[team].name
         results.at[i, "ADJO"] = _average(league[team].adj_o)
         results.at[i, "ADJD"] = _average(league[team].adj_d)
