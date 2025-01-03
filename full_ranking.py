@@ -39,7 +39,7 @@ class Team:
 
 def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
     league : Dict[str, Team] = {}
-    games = games[games['Division'] == 1]
+    games = games[games['Division'] == division]
     for index, row in games.iterrows():
         away : str = row["Away_Team"]
         home : str = row["Home_Team"]
