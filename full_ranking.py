@@ -120,22 +120,6 @@ def _ppp_est(game_id: int) -> Tuple[float, float]:
     return round(home_ppp, 2), round(away_ppp, 2)
 
 
-def _trawl_games() -> None:
-    everything : pd.DataFrame = pd.DataFrame()
-    for n in [1, 2, 3]:
-        print(f"Starting division {n}")
-        date: datetime = datetime(2024, 11, 1)
-        while True:
-            if date.month == 12 and date.day == 2:
-                break
-            print(date)
-            day: pd.DataFrame = day_scores(date, "MBB", division=n)
-            everything = pd.concat([everything, day], ignore_index=True)
-            date += timedelta(days=1)
-            time.sleep(SLEEP_DELAY)
-    everything.to_csv("scores.csv")
-
-
 # we save all the results to a csv here so if scraping is interrupted
 # we can resume where you left off
 def _all_games(start : datetime, end : datetime, file : str, w : bool = False) -> None:
