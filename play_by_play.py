@@ -343,7 +343,7 @@ def _build_lineups(game_id : int, game : pd.DataFrame) -> pd.DataFrame:
             try:
                 starters[0].remove(player)
             except ValueError:
-                print("Incomplete substitution data, using estimate")
+                pass
             rows_to_drop.append(i)
         elif "substitution in" in event:
             starters[0].append(player)
@@ -368,7 +368,7 @@ def _build_lineups(game_id : int, game : pd.DataFrame) -> pd.DataFrame:
             try:
                 starters[1].remove(player)
             except ValueError:
-                print("Incomplete substitution data, using estimate")
+                pass
             rows_to_drop.append(i)
         elif "substitution in" in event:
             starters[1].append(player)
@@ -406,7 +406,6 @@ def _build_lineups(game_id : int, game : pd.DataFrame) -> pd.DataFrame:
 # just use the score table
 def _fix_glitch(table : pd.DataFrame, game : pd.DataFrame) -> pd.DataFrame:
     if int(table[list(table.columns)[-1]][1]) != game["Away_Score"].iloc[-1]:
-        print("Error detected in scores column, flipping cols")
         game['Away_Score'], game['Home_Score'] = game['Home_Score'], game['Away_Score']
     return game
 
@@ -442,14 +441,14 @@ def scrape_game(game_id : int) -> pd.DataFrame:
         df["Period"] = i + 1
     game : pd.DataFrame = pd.concat(dataframes[3:], axis=0, ignore_index=True)
     if "-" in game["Score"][0]:
-        print("Play by play logged under old format, no support for now", game_id)
+        print(f"Play by play for game {game_id} logged under old format, no support for now, scraping box score")
         return pd.DataFrame()
     teams : List[str] = [game.columns[1], game.columns[3]] # team names
     # sometimes the pbp data is null save for announcements of each period.
     # 20 is arbitrary but will save us up to 18 OTs or 16 in women's so it should
     # be fine
     if len(game) < 20:
-        print("Play by play not logged, consider scraping box score")
+        print(f"Play by play for game {game_id} not logged, scraping box score")
         return pd.DataFrame()
     game.reset_index(drop=True, inplace=True)
     game = _build_lineups(game_id, game)
