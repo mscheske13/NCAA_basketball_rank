@@ -289,6 +289,10 @@ def every_rank(division : int = 1, women : bool = False, start : str = "", end :
     games: pd.DataFrame = _filter_games(file, start_date, end_date)
     return _rank_them(games, division)
 
+# sample use
+if __name__ == '__main__':
+    every_rank(start="11/01/2024", end="4/8/2025", women=False, division=1)
+
 
 
 
