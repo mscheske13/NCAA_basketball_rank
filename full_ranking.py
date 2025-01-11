@@ -25,14 +25,16 @@ def _average(games: List[float]) -> float:
 
 # Removes all the duplicate games caused by divisional crossover, and removes any games
 # not within the range provided
-def _filter_games(file : str, start : date, end: date) -> pd.DataFrame:
+def _filter_games(file : str, start : date, end: date, division : int) -> pd.DataFrame:
     games: pd.DataFrame = pd.read_csv(file)
     games.dropna(subset=['Game_id'], inplace=True) # drop games that didn't happen
     games.dropna(subset=['Home_id'], inplace=True) #drop non NCAA opponents
     games.dropna(subset=['Away_id'], inplace=True)
     games.drop_duplicates(subset=['Game_id'], keep=False, inplace=True) #isolates divisions
+    games = games[games['Division'] == division]
     games['Date'] = pd.to_datetime(games['Date']).dt.date
     games = games[(games['Date'] >= start) & (games['Date'] <= end)]
+    games.reset_index(drop=True)
     return games
 
 
@@ -47,10 +49,11 @@ class Team:
         self.locs = []
         self.ids = []
 
-def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
+def _rank_them(games: pd.DataFrame) -> pd.DataFrame:
     league : Dict[str, Team] = {}
-    games = games[games['Division'] == division]
     for index, row in games.iterrows():
+        if pd.isna(row["Home_ppp"]):
+            continue # band aid fix till I figure out whats going on here
         away : str = row["Away_Team"]
         home : str = row["Home_Team"]
         if away not in league:
@@ -76,7 +79,7 @@ def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
             league[home].locs.append("Neutral")
             league[away].locs.append("Neutral")
 
-    for _ in range(50):
+    for _ in range(10):
         for team in league:
             for i in range(len(league[team].opponents)):
                 loc_adj : float = 1 # adjust for home field advantage
@@ -86,7 +89,7 @@ def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
                     loc_adj = .986
                 opp: str = league[team].opponents[i]
                 j: int = league[opp].ids.index(league[team].ids[i])
-                for _ in range(50):
+                for _ in range(10):
                     league[team].adj_o[i] = league[team].o_ppp[i] / (_average(league[opp].adj_d) * loc_adj)
                     league[team].adj_d[i] = league[team].d_ppp[i] / (_average(league[opp].adj_o) * (2 - loc_adj))
                     league[opp].adj_o[j] = league[opp].o_ppp[j] / (_average(league[team].adj_d) * (2 - loc_adj))
@@ -97,7 +100,8 @@ def _rank_them(games: pd.DataFrame, division : int) -> pd.DataFrame:
         results.at[i, "ADJO"] = _average(league[team].adj_o)
         results.at[i, "ADJD"] = _average(league[team].adj_d)
         results.at[i, "ADJ_EM"] = round(results.at[i, "ADJO"] - results.at[i, "ADJD"], ROUND_PRECISION)
-    return results.sort_values(by='ADJ_EM', ascending=False)
+    results = results.sort_values(by='ADJ_EM', ascending=False)
+    return results.reset_index(drop=True)
 
 
 
@@ -155,6 +159,8 @@ def _all_games(start : date, end : date, file : str, w : bool = False) -> None:
                 if pd.isna(game_id):
                     index += 1
                     continue
+                if game_id == 5729377:
+                    i = i
                 all_games.at[index, "Home_Team"] = day["Home_Team"][i]
                 all_games.at[index, "Away_Team"] = day["Away_Team"][i]
                 try:
@@ -267,8 +273,8 @@ def every_rank(division : int = 1, women : bool = False, start : str = "", end :
     # up to the order of games, its fine.
     if scraping_start > end_date:
         print("Dataset already completed for this timespan, running algorithm...\n")
-        games: pd.DataFrame = _filter_games(file, start_date, end_date)
-        return _rank_them(games, division)
+        games: pd.DataFrame = _filter_games(file, start_date, end_date, division)
+        return _rank_them(games)
 
     if scraping_start < start_date:
         print("The provided start date is currently past the planned date to start gathering date.")
@@ -286,13 +292,12 @@ def every_rank(division : int = 1, women : bool = False, start : str = "", end :
         print("Once you restart just use the same arguments, and scraping will begin where you left off\n")
         exit(1)
     print("Dataset completed, running algorithm...")
-    games: pd.DataFrame = _filter_games(file, start_date, end_date)
-    return _rank_them(games, division)
+    games: pd.DataFrame = _filter_games(file, start_date, end_date, division)
+    return _rank_them(games)
 
-# sample use
+
 if __name__ == '__main__':
-    every_rank(start="11/01/2024", end="4/8/2025", women=False, division=1)
-
+    print(every_rank(start="12/08/2024", end="12/19/2024", women=False, division=1))
 
 
 
