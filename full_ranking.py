@@ -231,7 +231,7 @@ def every_rank(division : int = 1, women : bool = False, start : str = "", end :
         else:
             end_date = date(year + 1, 4, 8)
     else:
-        end_date : date = datetime.strptime(start, "%m/%d/%Y").date()
+        end_date : date = datetime.strptime(end, "%m/%d/%Y").date()
 
 
 
