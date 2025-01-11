@@ -50,25 +50,25 @@ class Team:
         self.ids = []
 
 def _rank_them(games: pd.DataFrame) -> pd.DataFrame:
-    league : Dict[str, Team] = {}
+    league : Dict[int, Team] = {}
     for index, row in games.iterrows():
         if pd.isna(row["Home_ppp"]):
             continue # band aid fix till I figure out whats going on here
-        away : str = row["Away_Team"]
-        home : str = row["Home_Team"]
+        away : int = row["Away_id"]
+        home : int = row["Home_id"]
         if away not in league:
-            league[away] = Team(away)
+            league[away] = Team(row["Away_Team"])
         if home not in league:
-            league[home] = Team(home)
+            league[home] = Team(row["Home_Team"])
         league[home].o_ppp.append(row["Home_ppp"])
         league[home].d_ppp.append(row["Away_ppp"])
         league[home].adj_o.append(row["Home_ppp"])
         league[home].adj_d.append(row["Away_ppp"])
-        league[home].opponents.append(row["Away_Team"])
+        league[home].opponents.append(row["Away_id"])
         league[home].ids.append(row["Game_id"])
         league[away].d_ppp.append(row["Home_ppp"])
         league[away].o_ppp.append(row["Away_ppp"])
-        league[away].opponents.append(row["Home_Team"])
+        league[away].opponents.append(row["Home_id"])
         league[away].adj_d.append(row["Home_ppp"])
         league[away].adj_o.append(row["Away_ppp"])
         league[away].ids.append(row["Game_id"])
@@ -80,20 +80,20 @@ def _rank_them(games: pd.DataFrame) -> pd.DataFrame:
             league[away].locs.append("Neutral")
 
     for _ in range(10):
-        for team in league:
-            for i in range(len(league[team].opponents)):
+        for team_id in league:
+            for i in range(len(league[team_id].opponents)):
                 loc_adj : float = 1 # adjust for home field advantage
-                if league[team].locs[i] == 'Home':
+                if league[team_id].locs[i] == 'Home':
                     loc_adj = 1.014
-                elif league[team].locs[i] == 'Away':
+                elif league[team_id].locs[i] == 'Away':
                     loc_adj = .986
-                opp: str = league[team].opponents[i]
-                j: int = league[opp].ids.index(league[team].ids[i])
+                opp_id: int = league[team_id].opponents[i]
+                j: int = league[opp_id].ids.index(league[team_id].ids[i])
                 for _ in range(10):
-                    league[team].adj_o[i] = league[team].o_ppp[i] / (_average(league[opp].adj_d) * loc_adj)
-                    league[team].adj_d[i] = league[team].d_ppp[i] / (_average(league[opp].adj_o) * (2 - loc_adj))
-                    league[opp].adj_o[j] = league[opp].o_ppp[j] / (_average(league[team].adj_d) * (2 - loc_adj))
-                    league[opp].adj_d[j] = league[opp].d_ppp[j] / (_average(league[team].adj_o) * loc_adj)
+                    league[team_id].adj_o[i] = league[team_id].o_ppp[i] / (_average(league[opp_id].adj_d) * loc_adj)
+                    league[team_id].adj_d[i] = league[team_id].d_ppp[i] / (_average(league[opp_id].adj_o) * (2 - loc_adj))
+                    league[opp_id].adj_o[j] = league[opp_id].o_ppp[j] / (_average(league[team_id].adj_d) * (2 - loc_adj))
+                    league[opp_id].adj_d[j] = league[opp_id].d_ppp[j] / (_average(league[team_id].adj_o) * loc_adj)
     results : pd.DataFrame = pd.DataFrame()
     for i, team in enumerate(league):
         results.at[i, "Team"] = league[team].name
