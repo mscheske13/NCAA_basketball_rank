@@ -263,6 +263,7 @@ def every_rank(division : int = 1, women : bool = False, start : str = "", end :
 
     if end_date > date.today():
         end_date = date.today()
+        end_date -= timedelta(days=1)
 
     if end_date > SEASON_END:
         end_date = SEASON_END
