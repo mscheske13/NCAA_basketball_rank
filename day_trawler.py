@@ -119,12 +119,14 @@ def day_scores(day: date, sport_code : str, division : int = 1) -> pd.DataFrame:
         home_info : str = rows[-2].find_all('td')[1].text.strip()
 
         if away_info[0] == '#':
-            away_team : str = " ".join(away_info.split(' ')[1:]) #remove seeds from names
-            home_team : str = " ".join(home_info.split(' ')[1:])
+            away_team : str = " ".join(away_info.split(' ')[1:]) #remove seeds from name
             scores.at[i, "Away_Seed"] = away_info.split()[0][1:]  # get seed
-            scores.at[i, "Home_Seed"] = home_info.split()[0][1:]
         else:
             away_team = away_info
+        if home_info[0] == '#':
+            home_team : str = " ".join(home_info.split(' ')[1:])
+            scores.at[i, "Home_Seed"] = home_info.split()[0][1:]
+        else:
             home_team = home_info
         # home/away_team is now in the format "team (w-l)"
         scores.at[i, "Away_Team"] = " ".join(away_team.split()[:-1]) #remove record
